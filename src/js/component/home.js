@@ -1,70 +1,144 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+//include images into your bundle
 
 //include images into your bundle
 import rigoImage from "../../img/rigo-baby.jpg";
 
 //create your first component
 export function Home() {
-	let [toDo, setToDo] = useState([
-		"Wash the dishes",
-		"Clean my room",
-		"Cook"
-	]);
-	let [tarea, setTarea] = useState([""]);
+	let [frases, setFrase] = useState([]);
 
-	const updatedtoDo = toDo.map(listItems => {
+	let [tarea, setTarea] = useState("");
+
+	useEffect(() => {
+		// Actualiza el título del documento usando la API del navegador
+		getlist();
+	}, []);
+
+	const getlist = async () => {
+		var fetchurl =
+			"https://assets.breatheco.de/apis/fake/todos/user/smorales95";
+		await fetch(fetchurl)
+			.then(response => response.json())
+			.then(result => {
+				setFrase(
+					result.map(items => {
+						return { label: items.label, done: items.done };
+					})
+				);
+			})
+			.catch(error => console.log("error", error));
+	};
+
+	const updatedtoDo = frases.map((listItems, i) => {
 		return (
-			<ul>
-				<li
-					id={listItems}
-					value={listItems}
-					className="li"
-					key={listItems.toString()}>
-					<span>
-						<i class="fa fa-trash"></i>
-					</span>{" "}
-					{listItems}
-				</li>
-			</ul>
+			<li className="ul" key={i} onClick={() => deleteToDo(i)}>
+				{listItems.label}
+			</li>
 		);
 	});
+	let lista = <ul className="list-group m-5">{updatedtoDo}</ul>;
 
-	function add(e) {
-		if (e.keyCode === 13) {
-			setToDo([...toDo, e.target.value]);
-			e.target.placeholder = "Do enter";
-			console.log({ toDo });
+	function handleChange(k) {
+		if (k.keyCode === 13) {
+			setFrase([...frases, { label: tarea, done: false }]);
+			actualizar(frases);
+			console.log(tarea);
 		}
 	}
 
-	function eliminar(e) {}
+	function insertarpost() {
+		var myHeaders = new Headers();
+		myHeaders.append("Content-Type", "application/json");
 
-	/*	return (
-		<div>
-			<h1>Todos</h1>
-			<div className="cuadro">
-				<input
-					type="text"
-					placeholder="enter do"
-					onInput={e => add(e)}
-				/>
-				<ul>{updatedtoDo};</ul>
-			</div>
-		</div>
-    );*/
+		var raw = JSON.stringify([frases]);
+
+		var requestOptions = {
+			method: "POST",
+			headers: myHeaders,
+			body: raw,
+			redirect: "follow"
+		};
+
+		fetch(
+			"https://assets.breatheco.de/apis/fake/todos/user/smorales95",
+			requestOptions
+		)
+			.then(response => response.text())
+			.then(result => console.log(result))
+			.catch(error => console.log("error", error));
+	}
+
+	function actualizar(frases) {
+		if (frases.length > 0) {
+			var myHeaders = new Headers();
+			myHeaders.append("Content-Type", "application/json");
+
+			var raw = JSON.stringify(frases);
+
+			var requestOptions = {
+				method: "PUT",
+				headers: myHeaders,
+				body: raw,
+				redirect: "follow"
+			};
+
+			fetch(
+				"https://assets.breatheco.de/apis/fake/todos/user/smorales95",
+				requestOptions
+			)
+				.then(response => response.json())
+				.then(result => console.log(result))
+				.catch(error => console.log("error", error));
+		} else if (frases.length <= 0 && tarea != "") {
+			insertarpost();
+		}
+	}
+	function deleteToDo(i) {
+		let borrar = frases.filter(item => item !== frases[i]);
+		setFrase(borrar);
+	}
+
+	function eliminaralltodo() {
+		var requestOptions = {
+			method: "DELETE",
+			redirect: "follow"
+		};
+
+		fetch(
+			"https://assets.breatheco.de/apis/fake/todos/user/smorales95",
+			requestOptions
+		)
+			.then(response => response.json())
+			.then(result => console.log(""))
+			.catch(error => console.log("error", error));
+		location.reload();
+	}
 
 	return (
-		<div>
+		<div className="cuadro">
 			<h1>Todos</h1>
-			<div className="cuadro">
+			<div sytle="mt-2">
 				<input
+					className="entrada"
 					type="text"
-					placeholder="Enter Do"
-					onKeyUp={e => add(e)}
-					onChange={k => setTarea(k.target.value)}
+					onChange={e => setTarea(e.target.value)}
+					onKeyUp={k => handleChange(k)}
 					value={tarea}
+					required
 				/>
-				<div onMouseOver={e => eliminar(e)}>{updatedtoDo}</div>
+				<div className="listas">
+					{lista}
+					{actualizar(frases)}
+				</div>
+			</div>
+			<div>
+				<section>
+					{" "}
+					tienes {frases.length} tareas por completar{" "}
+					<i className="fas fa-trash" onClick={eliminaralltodo}></i>
+				</section>
 			</div>
 		</div>
 	);
