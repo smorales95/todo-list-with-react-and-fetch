@@ -35,6 +35,7 @@ export function Home() {
 		return (
 			<li className="ul" key={i} onClick={() => deleteToDo(i)}>
 				{listItems.label}
+				<span className="izq fas fa-times"></span>
 			</li>
 		);
 	});
@@ -44,7 +45,7 @@ export function Home() {
 		if (k.keyCode === 13) {
 			setFrase([...frases, { label: tarea, done: false }]);
 			actualizar(frases);
-			console.log(tarea);
+			setTarea("");
 		}
 	}
 
@@ -97,7 +98,11 @@ export function Home() {
 	}
 	function deleteToDo(i) {
 		let borrar = frases.filter(item => item !== frases[i]);
-		setFrase(borrar);
+		if (borrar.length == 0) {
+			eliminaralltodo();
+		} else {
+			setFrase(borrar);
+		}
 	}
 
 	function eliminaralltodo() {
@@ -113,7 +118,7 @@ export function Home() {
 			.then(response => response.json())
 			.then(result => console.log(""))
 			.catch(error => console.log("error", error));
-		location.reload();
+		setFrase([]);
 	}
 
 	return (
